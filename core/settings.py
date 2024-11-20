@@ -33,7 +33,16 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 CUSTOM_APPS = [
-    
+    'apps.authentication',
+    'apps.dashboard',
+    'apps.user',
+    'apps.user_profile',
+    'apps.client_progress',
+    'apps.payment',
+    'apps.appointment_management',
+    'apps.schedule_management',
+    'apps.counselor_resources',
+    'apps.client_feedback',
 ]
 
 INSTALLED_LIBRARIES = [
@@ -163,7 +172,7 @@ MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# AUTH_USER_MODEL = 'user.UserModel'
+AUTH_USER_MODEL = 'user.UserModel'
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
