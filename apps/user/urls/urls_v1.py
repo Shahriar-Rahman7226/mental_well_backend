@@ -9,7 +9,7 @@ urlpatterns = [
                   path(r'', include(router.urls)),
                   path('create-admin/', UserResgistrationViewSet.as_view({'post': 'create_admin'})),
                   path('create-counselor/', UserResgistrationViewSet.as_view({'post': 'create_counselor'})),
-                  path('create-client/', UserResgistrationViewSet.as_view({'post': 'create_client'})),
+                  path('create-client/', ClientResgistrationViewSet.as_view({'post': 'create_client'})),
               ] 
 
 
