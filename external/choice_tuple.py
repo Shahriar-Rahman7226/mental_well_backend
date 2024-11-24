@@ -37,10 +37,14 @@ ProfileStatus = (
 )
 
 AppointmentStatus = (
-    ('PENDING', 'pending'),
     ('ASSIGNED', 'assigned'),
     ('COMPLETED', 'completed'),
     ('CANCELLED', 'cancelled'),
+)
+
+AppointmentCancelStatus = (
+    ('PENDING', 'pending'),
+    ('APPROVED', 'approved'),
     ('REJECTED', 'rejected'),
 )
 
