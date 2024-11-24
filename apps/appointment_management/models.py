@@ -24,7 +24,7 @@ class AppointmentRequest(CustomModel):
 
 class AppointmentRequestCancel(CustomModel):
     user = models.ForeignKey(UserModel, related_name='request_cancel_user', on_delete=models.CASCADE, blank=True, null=True)
-    appointment = models.ForeignKey(AppointmentRequest, related_name='appointment_schedule', on_delete=models.CASCADE, blank=True, null=True)
+    appointment = models.ForeignKey(AppointmentRequest, related_name='appointment_cancel_request', on_delete=models.CASCADE, blank=True, null=True)
     details = models.TextField(blank=True, null=True)
     emergency_document = models.FileField(blank=True, null=True)
     status = models.CharField(max_length=100, blank=True, null=True, choices=AppointmentCancelStatus, default=AppointmentCancelStatus[0][0])
