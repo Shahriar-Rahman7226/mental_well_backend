@@ -166,7 +166,7 @@ class UserResgistrationViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            user_obj = serializer.save()
+            serializer.save()
             subject = 'Mental Well'
             message = 'Your information was updated successfully.'
             send_email(None, subject, message, request.user.id)

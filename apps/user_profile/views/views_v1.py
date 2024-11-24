@@ -105,8 +105,8 @@ class CounselorProfileViewSet(ModelViewSet):
                 "Create Counselor Profile",
                 value={
                     "certificate": "string",
-                    "dentity_document": "string",
-                    "specializations": "string",
+                    "identity_document": "string",
+                    "specializations": ["string", "string"],
                     "description": "string",
                     "license_number": "string",
                     "website": "string",
@@ -128,7 +128,10 @@ class CounselorProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been created! It is now {profile_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile created succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -141,7 +144,7 @@ class CounselorProfileViewSet(ModelViewSet):
                 value={
                     "certificate": "string",
                     "dentity_document": "string",
-                    "specializations": "string",
+                    "specializations": ["string", "string"],
                     "description": "string",
                     "license_number": "string",
                     "website": "string",
@@ -156,14 +159,18 @@ class CounselorProfileViewSet(ModelViewSet):
     def update(self, request, *args, **kwargs):
       
         instance = self.queryset.filter(id=kwargs['id']).first()
-
+        
         if not instance:
             return Response({'message': 'Counselor profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+        request.data['status'] = 'PENDING'
 
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been updated! It is now {profile_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -190,14 +197,34 @@ class CounselorProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile was {profile_obj.status}. Please contact our authorities for any queries."
+            send_email(profile_obj.user.id, subject, message, None)
             return Response({'message': 'Profile status updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'status', "description": 'Filter by status'},
+    ]))
     @allowed_users(allowed_roles=['ADMIN'])
-    def list(self, request, *args, **kwargs):
+    def get_counselor_list(self, request, *args, **kwargs):
         queryset = self.queryset
+        profile_status = request.query_params.get('status', None)
+        if profile_status:
+            queryset = queryset.filter(status=profile_status)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+   
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset.filter(status='APPROVED')
     
         page = self.paginate_queryset(queryset)
         serializer_class = self.get_serializer_class()
@@ -212,7 +239,7 @@ class CounselorProfileViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(user=request.user.id).first()
         if not obj:
             return Response({'message': 'Profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
@@ -261,7 +288,10 @@ class ClientProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been created! It is now {profile_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile created succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -288,11 +318,15 @@ class ClientProfileViewSet(ModelViewSet):
 
         if not instance:
             return Response({'message': 'Client profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+        request.data['status'] = 'PENDING'
 
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been updated! It is now {profile_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -319,7 +353,10 @@ class ClientProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile was {profile_obj.status}. Please contact our authorities for any queries."
+            send_email(profile_obj.user.id, subject, message, None)
             return Response({'message': 'Profile status updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -360,8 +397,8 @@ class FounderProfileViewSet(ModelViewSet):
     lookup_field = 'id'
 
     def get_serializer_class(self):
-        if self.action == 'create':
-            return CounselorProfileCreateSerializer
+        if self.action in  ['create', 'update']:
+            return FounderProfileCreateSerializer
         else:
             return self.serializer_class
 
@@ -390,7 +427,10 @@ class FounderProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been created!"
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile created succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -421,7 +461,10 @@ class FounderProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            profile_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been updated!"
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Profile updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -441,7 +484,7 @@ class FounderProfileViewSet(ModelViewSet):
      
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(user=request.user.id).first()
         if not obj:
             return Response({'message': 'Profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
@@ -484,7 +527,10 @@ class AchievementsViewSet(ModelViewSet):
 
         serializer = self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            achievement_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been created! It is now {achievement_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Achievement added succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -512,10 +558,14 @@ class AchievementsViewSet(ModelViewSet):
 
         if not instance:
             return Response({'message': 'Achievement does not exists'}, status=status.HTTP_400_BAD_REQUEST)
+        request.data['status']='PENDING'
 
         serializer = self.serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            achievement_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your profile has been updated! It is now {achievement_obj.status}."
+            send_email(None, subject, message, request.user.id)
             return Response({'message': 'Achievement updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
@@ -541,7 +591,10 @@ class AchievementsViewSet(ModelViewSet):
 
         serializer = self.serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
+            achievement_obj = serializer.save()
+            subject = 'Mental Well'
+            message = f"Your achievement was {achievement_obj.status}. Please contact our authorities for any queries."
+            send_email(achievement_obj.counselor.user.id, subject, message, None)
             return Response({'message': 'Achievement status updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
