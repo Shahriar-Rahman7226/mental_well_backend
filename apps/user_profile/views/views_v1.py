@@ -387,6 +387,16 @@ class ClientProfileViewSet(ModelViewSet):
         serializer = serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_profile_data(self, request, *args, **kwargs):
+        counselor_qs = CounselorProfileModel.objects.filter(status='APPROVED')
+        client_qs = self.queryset.objects.filter(status='APPROVED')
+        profile_data = {
+            'counselor_count': counselor_qs.count(),
+            'client_count': client_qs.count(),
+        }
+        return Response(profile_data, status=status.HTTP_200_OK)
+    
 
 
 @extend_schema(tags=['Founder Profile'])
@@ -492,16 +502,6 @@ class FounderProfileViewSet(ModelViewSet):
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    @allowed_users(allowed_roles=['ADMIN'])
-    def get_profile_data(self, request, *args, **kwargs):
-        counselor_qs = CounselorProfileModel.objects.filter(status='APPROVED')
-        client_qs = self.queryset.objects.filter(status='APPROVED')
-        profile_data = {
-            'counselor_count': counselor_qs.count(),
-            'client_count': client_qs.count(),
-        }
-        return Response(profile_data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['Achievements'])
