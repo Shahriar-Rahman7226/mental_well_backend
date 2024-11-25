@@ -1,16 +1,18 @@
 from django.db import models
 from abstract.base_model import CustomModel
 from apps.user_profile.models import CounselorProfileModel, ClientProfileModel
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Client Feedback
 class Review(CustomModel):
     counselor = models.ForeignKey(CounselorProfileModel, related_name='counselor_review', on_delete=models.CASCADE, blank=True, null=True)
     client = models.ForeignKey(ClientProfileModel, related_name='client_review', on_delete=models.CASCADE, blank=True, null=True)
-    rating = models.PositiveIntegerField(blank=True, null=True) 
+    rating = models.PositiveIntegerField(blank=True, null=True, validators=[MinValueValidator(1), MaxValueValidator(5)]) 
     review_text = models.TextField(blank=True, null=True)
     is_published = models.BooleanField(blank=True, null=True, default=False) 
     appointment_count = models.PositiveIntegerField(blank=True, null=True, default=0)
     is_anonymous = models.BooleanField(blank=True, null=True, default=False)
+    counselor_name = models.CharField(max_length=100, blank=True, null=True)
     client_name = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):

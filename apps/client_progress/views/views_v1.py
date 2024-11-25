@@ -41,7 +41,7 @@ class ClientProgressViewSet(ModelViewSet):
         if not counselor_instance:
             return Response({'message': 'Invalid Counselor'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            data['counselor']=request.user.id
+            data['counselor']=counselor_instance.id
         
         client_instance = ClientProfileModel.objects.filter(user__id=data['client'], user__user_role='CLIENT').first()
         if not client_instance:
@@ -87,10 +87,10 @@ class ClientProgressViewSet(ModelViewSet):
     ]))
     @allowed_users(allowed_roles=['COUNSELOR'])
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
-        status = request.query_params.get('status', None)
-        if status:
-            queryset = queryset.filter(status=status)
+        queryset = self.queryset.filter(counselor__user__id = request.user.id)
+        progress_status = request.query_params.get('status', None)
+        if progress_status:
+            queryset = queryset.filter(status=progress_status)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.serializer_class(
@@ -103,7 +103,7 @@ class ClientProgressViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Client Progress does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)
@@ -136,7 +136,7 @@ class ClientProgressDetailsViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['COUNSELOR'])
     def create(self, request, *args, **kwargs):
         data = request.data
-        counselor_instance = CounselorProfileModel.objects.filter(user__id=request.user.id, user__user_role='COUNSELOR').first()
+        counselor_instance = self.queryset.objects.filter(counselor__user__id=request.user.id).first()
         if not counselor_instance:
             return Response({'message': 'Invalid Counselor'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -144,13 +144,22 @@ class ClientProgressDetailsViewSet(ModelViewSet):
         if not progress_instance:
             return Response({'message': 'Invalid Client Progress'}, status=status.HTTP_400_BAD_REQUEST)
         
-        appointment_instance = AppointmentRequest.objects.filter(id=data['appointment']).first()
+        appointment_instance = AppointmentRequest.objects.filter(id=data['appointment'], status='ASSIGNED').first()
         if not appointment_instance:
             return Response({'message': 'Invalid Appointment Request'}, status=status.HTTP_400_BAD_REQUEST)
 
         serializer = self.serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
+
+            progress_data={
+                'session_count': progress_instance.session_count + 1
+            }
+            progress_serializer = ClientProgressSerializer(instance=progress_instance, data=progress_data)
+            if progress_serializer.is_valid(raise_exception=True):
+                progress_serializer.save()
+            else:
+                return Response(progress_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             return Response({'message': 'Client Progress Details created succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -171,7 +180,7 @@ class ClientProgressDetailsViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['COUNSELOR'])
     def update(self, request, *args, **kwargs):
       
-        instance = self.queryset.filter(id=kwargs['id']).first()
+        instance = self.queryset.filter(id=kwargs['id'], counselor__user__id=request.user.id).first()
 
         if not instance:
             return Response({'message': 'Client Progress Details does not exists'}, status=status.HTTP_400_BAD_REQUEST)
@@ -188,7 +197,7 @@ class ClientProgressDetailsViewSet(ModelViewSet):
     ]))
     @allowed_users(allowed_roles=['COUNSELOR'])
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = self.queryset.filter(counselor__user__id=request.user.id)
         progress = request.query_params.get('client_progress', None)
         if progress:
             queryset = queryset.filter(progress=progress)
@@ -204,7 +213,7 @@ class ClientProgressDetailsViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id'], counselor__user__id=request.user.id).first()
         if not obj:
             return Response({'message': 'Client Progress Details does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)

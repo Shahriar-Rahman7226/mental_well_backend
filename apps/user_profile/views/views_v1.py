@@ -241,7 +241,7 @@ class CounselorProfileViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(user=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
@@ -380,7 +380,7 @@ class ClientProfileViewSet(ModelViewSet):
     @allowed_users(allowed_roles=['ADMIN', 'CLIENT'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
@@ -409,6 +409,7 @@ class FounderProfileViewSet(ModelViewSet):
             OpenApiExample(
                 "Create Founder Profile",
                 value={
+                    "user": "string",
                     "description": "string",
                     "website": "string",
                     "linked_in": "string",
@@ -418,21 +419,20 @@ class FounderProfileViewSet(ModelViewSet):
         ]
     )
     @transaction.atomic()
-    @allowed_users(allowed_roles=['ADMIN'])
+    @allowed_users(allowed_roles=[])
     def create(self, request, *args, **kwargs):
         
-        instance = UserModel.objects.filter(id=request.user.id, user_role='ADMIN').first()
-        if not instance:
+        user_instance = UserModel.objects.filter(id=request.data['user']).first()
+        if not user_instance:
             return Response({'message': 'Invalid user'}, status=status.HTTP_400_BAD_REQUEST)
-        request.data['user'] = instance.id
 
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
             profile_obj = serializer.save()
             subject = 'Mental Well'
-            message = f"Your profile has been created!"
-            send_email(None, subject, message, request.user.id)
+            message = f"Your profile has been created as a Founder!"
+            send_email(profile_obj.user.id, subject, message, None)
             return Response({'message': 'Profile created succesfully'}, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -452,7 +452,7 @@ class FounderProfileViewSet(ModelViewSet):
         ],
     )
     @transaction.atomic()
-    @allowed_users(allowed_roles=['ADMIN'])
+    @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def update(self, request, *args, **kwargs):
       
         instance = self.queryset.filter(id=kwargs['id']).first()
@@ -472,7 +472,7 @@ class FounderProfileViewSet(ModelViewSet):
     
 
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset.filter(is_founder=True)
+        queryset = self.queryset
     
         page = self.paginate_queryset(queryset)
         serializer_class = self.get_serializer_class()
@@ -486,12 +486,22 @@ class FounderProfileViewSet(ModelViewSet):
      
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(user=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
         serializer = serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_profile_data(self, request, *args, **kwargs):
+        counselor_qs = CounselorProfileModel.objects.filter(status='APPROVED')
+        client_qs = self.queryset.objects.filter(status='APPROVED')
+        profile_data = {
+            'counselor_count': counselor_qs.count(),
+            'client_count': client_qs.count(),
+        }
+        return Response(profile_data, status=status.HTTP_200_OK)
 
 
 @extend_schema(tags=['Achievements'])
@@ -605,10 +615,32 @@ class AchievementsViewSet(ModelViewSet):
         {"name": 'counselor_id', "description": 'Filter by counselor_id'},
     ]))
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = self.queryset.filter(status='APPROVED')
         counselor_id = request.query_params.get('counselor_id', None)
         if counselor_id:
-            queryset = queryset.filter(counselor=counselor_id, status="APPROVED")
+            queryset = queryset.filter(counselor=counselor_id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'counselor_id', "description": 'Filter by counselor_id'},
+        {"name": 'status', "description": 'Filter by achievement status'},
+    ]))
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_achievement_list(self, request, *args, **kwargs):
+        queryset = self.queryset
+        counselor_id = request.query_params.get('counselor_id', None)
+        achievement_status = request.query_params.get('status', None)
+        if counselor_id:
+            queryset = queryset.filter(counselor=counselor_id)
+        if achievement_status:
+            queryset = queryset.filter(counselor=achievement_status)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.serializer_class(
@@ -620,8 +652,11 @@ class AchievementsViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Achievement does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+

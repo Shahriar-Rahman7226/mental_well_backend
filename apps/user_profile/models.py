@@ -61,7 +61,7 @@ class FounderProfileModel(CustomModel):
     description = models.TextField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     linked_in = models.URLField(blank=True, null=True)
-    is_founder = models.BooleanField(blank=True, null=True, default=True)
+    # is_founder = models.BooleanField(blank=True, null=True, default=True)
 
     class Meta:
         db_table='founder_profile'

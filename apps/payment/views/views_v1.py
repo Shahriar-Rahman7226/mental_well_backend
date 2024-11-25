@@ -12,6 +12,7 @@ from rest_framework import status
 from external.permission_decorator import allowed_users
 import time
 from apps.appointment_management.models import AppointmentRequestCancel
+from django.db.models import Sum
 
 @extend_schema(tags=['Payment'])
 class PaymentViewSet(ModelViewSet):
@@ -89,9 +90,12 @@ class PaymentViewSet(ModelViewSet):
     @transaction.atomic()
     def payment_refund(self, request, *args, **kwargs):
         data = request.data
-        instance = self.queryset.filter(id=kwargs['id']).first()
-        appointment_instance = AppointmentRequestCancel.objects.filter(id=kwargs['appointment_cancellation_id'], is_refund=True).first()
-
+        id = kwargs.get('id')
+        appointment_cancellation_id = kwargs.get('appointment_cancellation_id')
+        print(id, appointment_cancellation_id)
+        instance = self.queryset.filter(id=id).first()
+        appointment_instance = AppointmentRequestCancel.objects.filter(id=appointment_cancellation_id, is_refund=True).first()
+        
         if not instance:
             return Response({'message': 'Payment instance does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -151,6 +155,14 @@ class PaymentViewSet(ModelViewSet):
             return self.get_paginated_response(serializer.data)
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_total_platform_fee(self, request, *args, **kwargs):
+        queryset = self.queryset.filter(is_refund=False)
+        # total platform fee
+        total_platform_fee = queryset.aggregate(total_cost=Sum('platform_fee'))['total_cost']
+        return Response({'total_platform_fee': total_platform_fee}, status=status.HTTP_200_OK)
     
 
     @extend_schema(parameters=set_query_params('list', [

@@ -196,7 +196,7 @@ class UserResgistrationViewSet(ModelViewSet):
      
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'User does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()
