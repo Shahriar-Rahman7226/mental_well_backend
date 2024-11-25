@@ -18,6 +18,7 @@ class Payment(CustomModel):
     final_amount = models.FloatField(blank=True, null=True)
     is_paid = models.BooleanField(blank=True, null=True, default=False)
     is_refund = models.BooleanField(blank=True, null=True, default=False)
+    payslip = models.FileField(blank=True, null=True) # If paid in cash
 
     class Meta:
         db_table = 'payment'
