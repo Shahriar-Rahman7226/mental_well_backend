@@ -23,6 +23,7 @@ def send_email(user_id=None, subject=None, body=None, request_user=None):
         return ("Email sent")
     else:
         return ("Email failed")
+    
 
 def send_sms(user_obj):
     pass

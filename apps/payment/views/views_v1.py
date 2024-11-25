@@ -35,32 +35,40 @@ class PaymentViewSet(ModelViewSet):
         ],
     )
     @allowed_users(allowed_roles=['CLIENT'])
+    @transaction.atomic()
     def update(self, request, *args, **kwargs):
-      
+        data = request.data()
         instance = self.queryset.filter(id=kwargs['id']).first()
 
         if not instance:
             return Response({'message': 'Payment instance does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         
-
-        # Get the last 4 digits of the phone number
-        last_4_digits = request.user.phone_number[-4:]
+        if (data['paid_amount']!=instance.due_amount):
+            return Response({'message': 'Please pay the exact due amount.'}, status=status.HTTP_400_BAD_REQUEST)
     
         # Generate a UUID and get the first 5 characters
-        unique_id = request.user.id[:5]
+        unique_id = str(request.user.id)[:5]
     
+        # Get the last 4 digits of the phone number
+        last_4_digits = request.user.phone_number[-4:]
+
         # Get the current timestamp in milliseconds
         timestamp = int(time.time() * 1000)
     
         # Construct the transaction ID
-        request.data['transaction_id'] = f"#{last_4_digits}{unique_id}{timestamp}"
+        data['transaction_id'] = f"#{unique_id}{last_4_digits}{timestamp}"
+
+        data['platfrom_fee'] = data['paid_amount']*(5/100)
+        data['final_amount'] = data['paid_amount'] - data['platform_fee']
 
         serializer = self.serializer_class(instance=instance, data=request.data)
         if serializer.is_valid(raise_exception=True):
             payment_obj = serializer.save()
             subject = 'Mental Well'
-            message = f'Your payment of {payment_obj.due_amount} was successful.'
-            send_email(None, subject, message, request.user.id)
+            client_message = f'Your payment of {payment_obj.due_amount} was successful. Transaction id: {payment_obj.transaction_id}.'
+            counselor_message = f'Payment of {payment_obj.final_amount} was made by client {payment_obj.client.user.full_name} on {payment_obj.payment_date}. Transaction id: {payment_obj.transaction_id}.'
+            send_email(payment_obj.counselor.user, subject, counselor_message, None)
+            send_email(None, subject, client_message, request.user.id)
             print(request.data['transaction_id'])
             return Response({'message': 'Payment updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

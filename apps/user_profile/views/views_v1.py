@@ -111,6 +111,7 @@ class CounselorProfileViewSet(ModelViewSet):
                     "license_number": "string",
                     "website": "string",
                     "linked_in": "string",
+                    "pay_per_session": 0,
                 },
                 request_only=True,
             )
@@ -149,6 +150,7 @@ class CounselorProfileViewSet(ModelViewSet):
                     "license_number": "string",
                     "website": "string",
                     "linked_in": "string",
+                    "pay_per_session": 0,
                 },
                 request_only=True,
             )
