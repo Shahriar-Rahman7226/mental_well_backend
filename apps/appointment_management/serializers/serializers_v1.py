@@ -12,3 +12,10 @@ class AppointmentRequestSerializer(ModelSerializer):
     class Meta:
         model = AppointmentRequest
         exclude = exclude_list
+
+
+class AppointmentRequestCancelSerializer(ModelSerializer):
+
+    class Meta:
+        model = AppointmentRequestCancel
+        exclude = exclude_list

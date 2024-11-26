@@ -8,5 +8,7 @@ router.register('counselor-schedule', CounselorScheduleViewSet, basename='counse
 
 urlpatterns = [
     path(r'', include(router.urls)),
-     path('get-schedule/', CounselorScheduleViewSet.as_view({'get': 'get_schedule'})),
+    path('counselor-update-staus/<str:id>/', CounselorScheduleViewSet.as_view({'post': 'update_status'})),
+    path('get-schedule/', CounselorScheduleViewSet.as_view({'get': 'get_schedule'})),
+    path('get-schedule_for_client/', CounselorScheduleViewSet.as_view({'get': 'get_schedule_for_client'})),
 ]

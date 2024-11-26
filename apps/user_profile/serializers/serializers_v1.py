@@ -25,14 +25,14 @@ class CounselorProfileCreateSerializer(ModelSerializer):
         fields = ['user', 'certificate', 'identity_document', 'specializations', 'description', 'license_number', 'website', 'linked_in']
 
 
-class CounselorProfileUpdateSerializer(ModelField):
+class CounselorProfileUpdateSerializer(ModelSerializer):
 
     class Meta:
         model = CounselorProfileModel
         fields = ['status']
 
 
-class CounselorProfileListSerializer(ModelField):
+class CounselorProfileListSerializer(ModelSerializer):
     user = UserListSerializer()
 
     class Meta:
@@ -47,14 +47,14 @@ class ClientProfileCreateSerializer(ModelSerializer):
         fields = ['user', 'description', 'goals', 'emergency_contact']
 
 
-class ClientProfileUpdateSerializer(ModelField):
+class ClientProfileUpdateSerializer(ModelSerializer):
 
     class Meta:
         model = ClientProfileModel
         fields = ['status']
 
 
-class ClientProfileListSerializer(ModelField):
+class ClientProfileListSerializer(ModelSerializer):
     user = UserListSerializer()
 
     class Meta:
@@ -70,12 +70,12 @@ class CounselorAchievementsSerializer(ModelSerializer):
 class FounderProfileCreateSerializer(ModelSerializer):
 
     class Meta:
-        model = CounselorAchievements
+        model = FounderProfileModel
         exclude = exclude_list
 
 class FounderProfileListSerializer(ModelSerializer):
     user = UserListSerializer()
 
     class Meta:
-        model = CounselorAchievements
+        model = FounderProfileModel
         exclude = exclude_list

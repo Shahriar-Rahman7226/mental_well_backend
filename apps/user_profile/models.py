@@ -36,7 +36,7 @@ class CounselorProfileModel(CustomModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.full_name if self.user else ''} -- {self.status if self.status else ''}" 
+        return f"{self.user.full_name if self.user else ''} -- {self.user.user_role if self.user else ''} -- {self.status if self.status else ''}" 
     
 
 
@@ -53,7 +53,7 @@ class ClientProfileModel(CustomModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.full_name if self.user else ''} -- {self.status if self.status else ''}" 
+        return f"{self.user.full_name if self.user else ''} -- {self.user.user_role if self.user else ''} -- {self.status if self.status else ''}" 
     
 
 class FounderProfileModel(CustomModel):
@@ -68,7 +68,7 @@ class FounderProfileModel(CustomModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.full_name if self.user else ''}" 
+        return f"{self.user.full_name if self.user else ''} -- {self.user.user_role if self.user else ''}" 
     
 
 class CounselorAchievements(CustomModel):
