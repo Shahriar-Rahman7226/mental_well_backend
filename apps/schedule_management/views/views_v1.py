@@ -180,7 +180,6 @@ class CounselorScheduleViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
      
-    @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
         obj = queryset.filter(id=kwargs['id']).first()

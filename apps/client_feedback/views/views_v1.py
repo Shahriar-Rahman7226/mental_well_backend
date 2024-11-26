@@ -75,7 +75,7 @@ class FAQViewSet(ModelViewSet):
             return Response({'message': 'FAQ answered successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    @allowed_users(allowed_roles=['CLIENT', 'COUNSELOR'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
         page = self.paginate_queryset(queryset)
@@ -89,6 +89,7 @@ class FAQViewSet(ModelViewSet):
     @extend_schema(parameters=set_query_params('list', [
         {"name": 'is_published', "description": 'Filter by published status'},
     ]))
+    @allowed_users(allowed_roles=['ADMIN'])
     def get_faq(self, request, *args, **kwargs):
         queryset = self.queryset
         is_published = request.query_params.get('is_published', None)
@@ -100,15 +101,6 @@ class FAQViewSet(ModelViewSet):
                 page, many=True, context={'request': request})
             return self.get_paginated_response(serializer.data)
         serializer = self.serializer_class(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    
-
-    def retrieve(self, request, *args, **kwargs):
-        queryset = self.queryset
-        obj = queryset.filter(id=kwargs['id']).first()
-        if not obj:
-            return Response({'message': 'FAQ does not exists'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
@@ -190,7 +182,8 @@ class ReviewViewSet(ModelViewSet):
             return Response({'message': 'Review updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    
+    @allowed_users(allowed_roles=['CLIENT', 'COUNSELOR'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
         page = self.paginate_queryset(queryset)
@@ -201,11 +194,23 @@ class ReviewViewSet(ModelViewSet):
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
-    def retrieve(self, request, *args, **kwargs):
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'is_published', "description": 'Filter by published status'},
+        {"name": 'counselor', "description": 'Filter by counselor id'},
+    ]))
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_review(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=kwargs['id']).first()
-        if not obj:
-            return Response({'message': 'Review does not exists'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.serializer_class(obj)
+        is_published = request.query_params.get('is_published', None)
+        counselor = request.query_params.get('counselor', None)
+        if is_published:
+            queryset = queryset.filter(is_published=is_published)
+        if counselor:
+            queryset = queryset.filter(counselor__user__id=counselor)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

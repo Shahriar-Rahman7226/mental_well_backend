@@ -238,7 +238,6 @@ class CounselorProfileViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
      
-    @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
         obj = queryset.filter(id=kwargs['id']).first()
@@ -376,8 +375,7 @@ class ClientProfileViewSet(ModelViewSet):
         serializer = serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-     
-    @allowed_users(allowed_roles=['ADMIN', 'CLIENT'])
+
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
         obj = queryset.filter(id=kwargs['id']).first()
@@ -387,7 +385,7 @@ class ClientProfileViewSet(ModelViewSet):
         serializer = serializer_class(obj)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @allowed_users(allowed_roles=['ADMIN'])
+    @allowed_users(allowed_roles=['ADMIN'])                         # For Bar Chart on Admin Dashboard.
     def get_profile_data(self, request, *args, **kwargs):
         counselor_qs = CounselorProfileModel.objects.filter(status='APPROVED')
         client_qs = self.queryset.objects.filter(status='APPROVED')
@@ -462,10 +460,9 @@ class FounderProfileViewSet(ModelViewSet):
         ],
     )
     @transaction.atomic()
-    @allowed_users(allowed_roles=['ADMIN', 'COUNSELOR'])
     def update(self, request, *args, **kwargs):
       
-        instance = self.queryset.filter(id=kwargs['id']).first()
+        instance = self.queryset.filter(user__id=request.user.id).first()
 
         if not instance:
             return Response({'message': 'Founder profile does not exists'}, status=status.HTTP_400_BAD_REQUEST)

@@ -118,6 +118,7 @@ class CounselorResourceViewSet(ModelViewSet):
     @extend_schema(parameters=set_query_params('list', [
         {"name": 'counselor_id', "description": 'Filter by counselor_id'},
     ]))
+    @allowed_users(allowed_roles=['COUNSELOR', 'CLIENT'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
         counselor_id = request.query_params.get('counselor_id', None)
@@ -245,7 +246,7 @@ class OtherResourceViewSet(ModelViewSet):
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
+    @allowed_users(allowed_roles=['COUNSELOR', 'CLIENT'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
     
