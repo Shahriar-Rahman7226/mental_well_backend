@@ -19,4 +19,4 @@ class CounselorSchedule(CustomModel):
         ordering=['-created_at']
 
     def __str__(self):
-        return f"{self.counselor.user.full_name if self.counselor.user else ''} -- {self.day if self.day else ''} -- {self.status if self.status else ''}"
+        return f"{self.day if self.day else ''} ({self.start_time if self.start_time else ''} to {self.end_time if self.end_time else ''})"

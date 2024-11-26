@@ -61,11 +61,11 @@ ProgressStatus = (
     ('INCOMPLETE', 'incomplete'),
 )
 
-ResourceStatus = (
-    ('PENDING', 'pending'),
-    ('APPROVED', 'approved'),
-    ('REJECTED', 'rejected'),
-)
+# ResourceStatus = (
+#     ('PENDING', 'pending'),
+#     ('APPROVED', 'approved'),
+#     ('REJECTED', 'rejected'),
+# )
 
 ResourceType = (
         ('ARTICLE', 'article'),

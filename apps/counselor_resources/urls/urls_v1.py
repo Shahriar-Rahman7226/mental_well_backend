@@ -9,6 +9,8 @@ router.register('other-resource', OtherResourceViewSet, basename='other_resource
 
 urlpatterns = [
     path(r'', include(router.urls)),
+    path('get-counselor-resources/', CounselorResourceViewSet.as_view({'get': 'get_counselor_resources'})),
+    path('get-other-resources/', OtherResourceViewSet.as_view({'get': 'get_other_resources'})),
 ]
 
 

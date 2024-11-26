@@ -49,7 +49,7 @@ class UserResgistrationViewSet(ModelViewSet):
         ]
     )
     @transaction.atomic()
-    @allowed_users(allowed_roles=[''])
+    @allowed_users(allowed_roles=[])
     def create_admin(self, request, *args, **kwargs):
         queryset = self.queryset
         data = request.data
@@ -99,7 +99,7 @@ class UserResgistrationViewSet(ModelViewSet):
         ]
     )
     @transaction.atomic()
-    @allowed_users(allowed_roles=[])
+    @allowed_users(allowed_roles=['ADMIN'])
     def create_counselor(self, request, *args, **kwargs):
         queryset = self.queryset
         data = request.data
@@ -149,7 +149,7 @@ class UserResgistrationViewSet(ModelViewSet):
     @transaction.atomic()
     def update(self, request, *args, **kwargs):
         data = request.data
-        instance = self.queryset.filter(id=kwargs['id']).first()
+        instance = self.queryset.filter(id=request.user.id).first()
 
         if not instance:
             return Response({'message': 'User does not exists'}, status=status.HTTP_400_BAD_REQUEST)
@@ -196,7 +196,7 @@ class UserResgistrationViewSet(ModelViewSet):
      
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'User does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.get_serializer_class()

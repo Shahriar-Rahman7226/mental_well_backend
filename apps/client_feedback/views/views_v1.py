@@ -36,11 +36,11 @@ class FAQViewSet(ModelViewSet):
     @transaction.atomic()
     @allowed_users(allowed_roles=['CLIENT'])
     def create(self, request, *args, **kwargs):
-        instance = ClientProfileModel.objects.filter(user__id=request.user.id).first()
-        if not instance:
+        client_instance = ClientProfileModel.objects.filter(user__id=request.user.id).first()
+        if not client_instance:
             return Response({'message': 'Invalid Client'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            request.data['client'] = request.user.id
+            request.data['client'] = client_instance.id
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -75,7 +75,7 @@ class FAQViewSet(ModelViewSet):
             return Response({'message': 'FAQ answered successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    @allowed_users(allowed_roles=['CLIENT', 'COUNSELOR'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
         page = self.paginate_queryset(queryset)
@@ -86,13 +86,21 @@ class FAQViewSet(ModelViewSet):
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
-    def retrieve(self, request, *args, **kwargs):
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'is_published', "description": 'Filter by published status'},
+    ]))
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_faq(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
-        if not obj:
-            return Response({'message': 'FAQ does not exists'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.serializer_class(obj)
+        is_published = request.query_params.get('is_published', None)
+        if is_published:
+            queryset = queryset.filter(is_published=is_published)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 
@@ -113,6 +121,7 @@ class ReviewViewSet(ModelViewSet):
                     "counselor": "string",
                     "rating": 5,
                     "review_text": "string",
+                    "is_anonymous": "string",
                 },
                 request_only=True,
             )
@@ -121,14 +130,25 @@ class ReviewViewSet(ModelViewSet):
     @transaction.atomic()
     @allowed_users(allowed_roles=['CLIENT'])
     def create(self, request, *args, **kwargs):
-        instance = ClientProfileModel.objects.filter(user__id=request.user.id).first()
-        if not instance:
+        client_instance = ClientProfileModel.objects.filter(user__id=request.user.id).first()
+        if not client_instance:
             return Response({'message': 'Invalid Client'}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            request.data['client'] = request.user.id
+            request.data['client'] = client_instance.id
 
-        appointment_qs = AppointmentRequest.objects.filter(client=request.user.id, status='DONE')
+        counselor_instance = CounselorProfileModel.objects.filter(user__id=request.data['counselor']).first()
+        if not counselor_instance:
+            return Response({'message': 'Invalid Counselor'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            request.data['counselor_name'] = counselor_instance.user.full_name
+
+        appointment_qs = AppointmentRequest.objects.filter(client=request.user.id, status='COMPLETED')
         request.data['appointment_count'] = appointment_qs.count()
+
+        if (request.data['is_anonymous']==False):
+            request.data['client_name']=client_instance.user.full_name
+        else:
+            request.data['client_name']='Anonymous'
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid(raise_exception=True):
@@ -142,7 +162,6 @@ class ReviewViewSet(ModelViewSet):
             OpenApiExample(
                "Update Review Status",
                 value={
-                    "status": "string",
                     "is_published": "string",
                 },
                 request_only=True,
@@ -163,7 +182,8 @@ class ReviewViewSet(ModelViewSet):
             return Response({'message': 'Review updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-
+    
+    @allowed_users(allowed_roles=['CLIENT', 'COUNSELOR'])
     def list(self, request, *args, **kwargs):
         queryset = self.queryset.filter(is_published=True)
         page = self.paginate_queryset(queryset)
@@ -174,11 +194,23 @@ class ReviewViewSet(ModelViewSet):
         serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-
-    def retrieve(self, request, *args, **kwargs):
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'is_published', "description": 'Filter by published status'},
+        {"name": 'counselor', "description": 'Filter by counselor id'},
+    ]))
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_review(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
-        if not obj:
-            return Response({'message': 'Review does not exists'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = self.serializer_class(obj)
+        is_published = request.query_params.get('is_published', None)
+        counselor = request.query_params.get('counselor', None)
+        if is_published:
+            queryset = queryset.filter(is_published=is_published)
+        if counselor:
+            queryset = queryset.filter(counselor__user__id=counselor)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

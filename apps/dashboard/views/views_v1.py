@@ -48,7 +48,7 @@ class BannerViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Banner does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.serializer_class
@@ -130,7 +130,7 @@ class MotivationViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Motivational Quote does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)
@@ -178,7 +178,7 @@ class LegalDocumentViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Legal Document does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.serializer_class
@@ -222,7 +222,7 @@ class PrivacyPolicyViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Privacy Policy does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.serializer_class
@@ -276,7 +276,7 @@ class AboutUsViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'About Us does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.serializer_class
@@ -329,7 +329,7 @@ class FooterViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Footer does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer_class = self.serializer_class
