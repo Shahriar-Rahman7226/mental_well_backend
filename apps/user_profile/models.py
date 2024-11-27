@@ -21,7 +21,7 @@ class CounselorProfileModel(CustomModel):
     user = models.ForeignKey(UserModel, related_name='counselor_profile', on_delete=models.CASCADE, blank=True, null=True)
     certificate = models.FileField(blank=True, null=True)
     identity_document = models.FileField(blank=True, null=True)
-    specializations = models.ManyToManyField(SpecializationModel, related_name='counselor_specialization')
+    specializations = models.ManyToManyField(SpecializationModel, related_name='counselor_specialization', blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     license_number = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(blank=True, null=True)

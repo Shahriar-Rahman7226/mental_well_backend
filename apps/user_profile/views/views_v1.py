@@ -120,7 +120,8 @@ class CounselorProfileViewSet(ModelViewSet):
     @transaction.atomic()
     @allowed_users(allowed_roles=['COUNSELOR'])
     def create(self, request, *args, **kwargs):
-        
+        print(request.data)
+        print(request.user.id)
         instance = UserModel.objects.filter(id=request.user.id, user_role='COUNSELOR').first()
         if not instance:
             return Response({'message': 'Invalid user'}, status=status.HTTP_400_BAD_REQUEST)
