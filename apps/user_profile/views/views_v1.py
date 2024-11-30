@@ -125,10 +125,14 @@ class CounselorProfileViewSet(ModelViewSet):
         instance = UserModel.objects.filter(id=request.user.id, user_role='COUNSELOR').first()
         if not instance:
             return Response({'message': 'Invalid user'}, status=status.HTTP_400_BAD_REQUEST)
-        request.data['user'] = instance.id
+        profile_instance = self.queryset.filter(user=instance.id).first()
+        if profile_instance:
+            return Response({'message': 'Counselor profile already created'}, status=status.HTTP_400_BAD_REQUEST)
+        data=request.data.copy()
+        data['user'] = instance.id
 
         serializer_class = self.get_serializer_class()
-        serializer = serializer_class(data=request.data)
+        serializer = serializer_class(data=data)
         if serializer.is_valid(raise_exception=True):
             profile_obj = serializer.save()
             subject = 'Mental Well'
