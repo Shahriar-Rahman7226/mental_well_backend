@@ -7,12 +7,15 @@ router = DefaultRouter()
 router.register('specialization', SpecializationViewSet, basename='specialization')
 router.register('counselor-profile', CounselorProfileViewSet, basename='couselor_profile')
 router.register('client-profile', ClientProfileViewSet, basename='client_profile')
-router.register('founder-profile', ClientProfileViewSet, basename='founder_profile')
+router.register('founder-profile', FounderProfileViewSet, basename='founder_profile')
 router.register('achievements', AchievementsViewSet, basename='achievements')
 
 urlpatterns = [
                   path(r'', include(router.urls)),
-                  path('counselor-update-staus/', CounselorProfileViewSet.as_view({'post': 'update_status'})),
-                  path('client-update-staus/', ClientProfileViewSet.as_view({'post': 'update_status'})),
+                  path('counselor-update-status/<str:id>/', CounselorProfileViewSet.as_view({'post': 'update_status'})),
+                  path('get-counselor-list/', CounselorProfileViewSet.as_view({'get': 'get_counselor_list'})),
+                  path('client-update-staus/<str:id>/', ClientProfileViewSet.as_view({'put': 'update_status'})),
+                  path('get-achievement-list/', AchievementsViewSet.as_view({'get': 'get_achievement_list'})),
+                  path('get-profile-data/', ClientProfileViewSet.as_view({'get': 'get_profile_data'})),
               ] 
 

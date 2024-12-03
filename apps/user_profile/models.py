@@ -21,7 +21,7 @@ class CounselorProfileModel(CustomModel):
     user = models.ForeignKey(UserModel, related_name='counselor_profile', on_delete=models.CASCADE, blank=True, null=True)
     certificate = models.FileField(blank=True, null=True)
     identity_document = models.FileField(blank=True, null=True)
-    specializations = models.ManyToManyField(SpecializationModel, related_name='counselor_specialization')
+    specializations = models.ManyToManyField(SpecializationModel, related_name='counselor_specialization', blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     license_number = models.CharField(max_length=100, blank=True, null=True)
     website = models.URLField(blank=True, null=True)
@@ -36,7 +36,7 @@ class CounselorProfileModel(CustomModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.full_name if self.user else ''} -- {self.status if self.status else ''}" 
+        return f"{self.user.full_name if self.user else ''}" 
     
 
 
@@ -53,7 +53,7 @@ class ClientProfileModel(CustomModel):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.full_name if self.user else ''} -- {self.status if self.status else ''}" 
+        return f"{self.user.full_name if self.user else ''}" 
     
 
 class FounderProfileModel(CustomModel):
@@ -61,7 +61,7 @@ class FounderProfileModel(CustomModel):
     description = models.TextField(blank=True, null=True)
     website = models.URLField(blank=True, null=True)
     linked_in = models.URLField(blank=True, null=True)
-    is_founder = models.BooleanField(blank=True, null=True, default=True)
+    # is_founder = models.BooleanField(blank=True, null=True, default=True)
 
     class Meta:
         db_table='founder_profile'

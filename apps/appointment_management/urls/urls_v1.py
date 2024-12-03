@@ -4,10 +4,11 @@ from apps.appointment_management.views.views_v1 import *
 
 router = DefaultRouter()
 router.register('appointment-request', AppointmentRequestViewSet, basename='appointment_request')
+router.register('appointment-request-cancel', AppointmentRequestCancelViewSet, basename='appointment_request_cancel')
 
 urlpatterns = [
     path(r'', include(router.urls)),
-    path('get-request/', AppointmentRequestViewSet.as_view({'get': 'get_request'})),
+    path('get-appointment/', AppointmentRequestViewSet.as_view({'get': 'get_appointment_list'})),
 ]
 
 

@@ -8,4 +8,6 @@ router.register('review', ReviewViewSet, basename='review')
 
 urlpatterns = [
     path(r'', include(router.urls)),
+     path('get-faq/', FAQViewSet.as_view({'get': 'get_faq'})),
+     path('get-review/', ReviewViewSet.as_view({'get': 'get_review'})),
 ]

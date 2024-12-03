@@ -37,10 +37,14 @@ ProfileStatus = (
 )
 
 AppointmentStatus = (
-    ('PENDING', 'pending'),
     ('ASSIGNED', 'assigned'),
     ('COMPLETED', 'completed'),
     ('CANCELLED', 'cancelled'),
+)
+
+AppointmentCancelStatus = (
+    ('PENDING', 'pending'),
+    ('APPROVED', 'approved'),
     ('REJECTED', 'rejected'),
 )
 
@@ -57,11 +61,11 @@ ProgressStatus = (
     ('INCOMPLETE', 'incomplete'),
 )
 
-ResourceStatus = (
-    ('PENDING', 'pending'),
-    ('APPROVED', 'approved'),
-    ('REJECTED', 'rejected'),
-)
+# ResourceStatus = (
+#     ('PENDING', 'pending'),
+#     ('APPROVED', 'approved'),
+#     ('REJECTED', 'rejected'),
+# )
 
 ResourceType = (
         ('ARTICLE', 'article'),

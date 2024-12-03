@@ -1,5 +1,7 @@
 from rest_framework.serializers import *
 from ..models import *
+from apps.user_profile.models import FounderProfileModel
+from apps.user_profile.serializers.serializers_v1 import FounderProfileListSerializer
 
 exclude_list = [
     'is_active',
@@ -36,10 +38,15 @@ class PrivacyPolicySerializer(ModelSerializer):
 
 
 class AboutUsSerializer(ModelSerializer):
-    
+    founders = SerializerMethodField()
+
     class Meta:
         model = AboutUs
         exclude = exclude_list
+
+    def get_founders(self, obj):
+        founders = FounderProfileModel.objects.all()
+        return FounderProfileListSerializer(founders, many=True).data
 
 
 class FooterSerializer(ModelSerializer):

@@ -1,6 +1,5 @@
 from rest_framework import serializers
 from rest_framework.serializers import *
-
 from apps.user.models import *
 
 exclude_list = [
@@ -17,6 +16,7 @@ class UserCreateSerializer(ModelSerializer):
     class Meta:
         model = UserModel
         fields = ['first_name', 'last_name', 'full_name', 'email', 'phone_number', 'password', 'user_role', 'gender', 'language', 'profile_pic']
+
 
 class UserUpdateSerializer(ModelSerializer):
     

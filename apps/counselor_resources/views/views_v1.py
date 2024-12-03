@@ -25,10 +25,13 @@ class CounselorResourceViewSet(ModelViewSet):
             OpenApiExample(
                 "Create Counselor Resource",
                 value={
-                    "image": "string",
-                    "title": "string",
-                    "article_file": "string",
+                     "title": "string",
+                    "details": "string",
+                    "resource_type": "string",
                     "published_at": "string",
+                    "image": "string",
+                    "resource_file": "string",
+                    "resource_link": "string",
                 },
                 request_only=True,
             )
@@ -58,10 +61,13 @@ class CounselorResourceViewSet(ModelViewSet):
             OpenApiExample(
                "Update Counselor Resource",
                 value={
-                    "image": "string",
                     "title": "string",
-                    "article_file": "string",
+                    "details": "string",
+                    "resource_type": "string",
                     "published_at": "string",
+                    "image": "string",
+                    "resource_file": "string",
+                    "resource_link": "string",
                 },
                 request_only=True,
             )
@@ -88,7 +94,6 @@ class CounselorResourceViewSet(ModelViewSet):
             OpenApiExample(
                "Update Counselor Resource Status",
                 value={
-                    "status": "string",
                     "is_published": "string",
                 },
                 request_only=True,
@@ -113,11 +118,34 @@ class CounselorResourceViewSet(ModelViewSet):
     @extend_schema(parameters=set_query_params('list', [
         {"name": 'counselor_id', "description": 'Filter by counselor_id'},
     ]))
+    @allowed_users(allowed_roles=['COUNSELOR', 'CLIENT'])
     def list(self, request, *args, **kwargs):
-        queryset = self.queryset
+        queryset = self.queryset.filter(is_published=True)
         counselor_id = request.query_params.get('counselor_id', None)
         if counselor_id:
-            queryset = queryset.filter(counselor=counselor_id, is_published=True)
+            queryset = queryset.filter(counselor=counselor_id)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+
+    @extend_schema(parameters=set_query_params('list', [
+        {"name": 'counselor_id', "description": 'Filter by counselor_id'},
+        {"name": 'is_published', "description": 'Filter by published status'},
+    ]))
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_counselor_resources(self, request, *args, **kwargs):
+        queryset = self.queryset
+        counselor_id = request.query_params.get('counselor_id', None)
+        is_published = request.query_params.get('is_published', None)
+        if counselor_id:
+            queryset = queryset.filter(counselor=counselor_id)
+        if is_published:
+            queryset = queryset.filter(is_published=is_published)
         page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.serializer_class(
@@ -129,7 +157,7 @@ class CounselorResourceViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Counselor Resource does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)
@@ -152,6 +180,10 @@ class OtherResourceViewSet(ModelViewSet):
                 value={
                     "title": "string",
                     "details": "string",
+                    "resource_type": "string",
+                    "published_at": "string",
+                    "is_published": "string",
+                    "image": "string",
                     "resource_file": "string",
                     "resource_link": "string",
                 },
@@ -177,6 +209,10 @@ class OtherResourceViewSet(ModelViewSet):
                 value={
                     "title": "string",
                     "details": "string",
+                    "resource_type": "string",
+                    "published_at": "string",
+                    "is_published": "string",
+                    "image": "string",
                     "resource_file": "string",
                     "resource_link": "string",
                 },
@@ -198,9 +234,21 @@ class OtherResourceViewSet(ModelViewSet):
             return Response({'message': 'Resource updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-    def list(self, request, *args, **kwargs):
+    @allowed_users(allowed_roles=['ADMIN'])
+    def get_other_resources(self, request, *args, **kwargs):
         queryset = self.queryset
+    
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context={'request': request})
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @allowed_users(allowed_roles=['COUNSELOR', 'CLIENT'])
+    def list(self, request, *args, **kwargs):
+        queryset = self.queryset.filter(is_published=True)
     
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -213,7 +261,7 @@ class OtherResourceViewSet(ModelViewSet):
 
     def retrieve(self, request, *args, **kwargs):
         queryset = self.queryset
-        obj = queryset.filter(id=request.user.id).first()
+        obj = queryset.filter(id=kwargs['id']).first()
         if not obj:
             return Response({'message': 'Resource does not exists'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = self.serializer_class(obj)

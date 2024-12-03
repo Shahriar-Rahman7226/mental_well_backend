@@ -12,3 +12,9 @@ class PaymentSerializer(ModelSerializer):
     class Meta:
         model = Payment
         exclude = exclude_list
+
+class PaymentClientSerializer(ModelSerializer):
+
+    class Meta:
+        model = Payment
+        exclude = exclude_list + ['platform_fee', 'final_amount']

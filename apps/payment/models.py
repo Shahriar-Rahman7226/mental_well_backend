@@ -14,10 +14,15 @@ class Payment(CustomModel):
     payment_date = models.DateField(blank=True, null=True)
     transaction_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     payment_method = models.CharField(max_length=100, choices=PaymentMethodType, default=PaymentMethodType[0][0], blank=True, null=True)
+    platform_fee = models.FloatField(blank=True, null=True)  # 5% platform fee
+    final_amount = models.FloatField(blank=True, null=True)
+    is_paid = models.BooleanField(blank=True, null=True, default=False)
+    is_refund = models.BooleanField(blank=True, null=True, default=False)
+    payment_payslip = models.FileField(blank=True, null=True) # If paid in cash
 
     class Meta:
         db_table = 'payment'
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.client.user.full_name if self.client.user else ''} - {self.transaction_id if self.transaction_id else ''}"
+        return f"{self.client.user.full_name if self.client.user else ''} ({self.transaction_id if self.transaction_id else ''})"
