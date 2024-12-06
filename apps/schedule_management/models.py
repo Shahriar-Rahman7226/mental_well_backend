@@ -3,8 +3,7 @@ from abstract.base_model import CustomModel
 from apps.user_profile.models import CounselorProfileModel
 from external.choice_tuple import ScheduleStatus, Days
 
-# Create your models here.
-# Available time slots or schedules for each counselor
+
 class CounselorSchedule(CustomModel):
     counselor = models.ForeignKey(CounselorProfileModel, related_name='counselor_schedule', on_delete=models.CASCADE, blank=True, null=True)
     day = models.CharField(max_length=100, blank=True, null=True, choices=Days)
