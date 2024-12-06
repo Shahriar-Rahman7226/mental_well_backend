@@ -69,6 +69,7 @@ class LoginViewSet(ModelViewSet):
                 data = get_tokens_for_user(instance)
                 data['last_login_time'] = instance.last_login
                 data['detail'] = 'Login successful'
+                data['user_role'] = instance.user_role
                 return Response(data, status=status.HTTP_202_ACCEPTED)
             else:
                 instance.login_attempt += 1
